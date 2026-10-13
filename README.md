@@ -41,9 +41,21 @@ A machine learning web application that predicts Big Five (OCEAN) personality tr
 
 These scores are simplified personality indicators, not psychological diagnoses.
 
-## Machine Learning Algorithm
+## Machine Learning Approach
 
-The project uses a **multi-output regression approach** to predict five personality trait scores from 50 questionnaire responses.
+This project uses a **multi-output Linear Regression model** to estimate the five Big Five (OCEAN) trait scores from 50 questionnaire responses.
+
+### Pipeline
+
+1. **Questionnaire preprocessing:** Reverse-score 25 reverse-keyed items using `6 - response`.
+2. **Target construction:** Calculate the mean score for Extraversion (E), Agreeableness (A), Conscientiousness (C), and Openness (O). Neuroticism (N) is derived by reverse-scoring the Emotional Stability (ES) score.
+3. **Missing-value handling:** Use `SimpleImputer(strategy="median")` to fill missing input values.
+4. **Model training:** Train `LinearRegression()` to predict all five target scores.
+5. **Evaluation:** Split the dataset into 80% training and 20% testing data, using `random_state=42`.
+
+### Important Evaluation Limitation
+
+The target scores are calculated from the same questionnaire responses supplied as model inputs. Therefore, the model learns to approximate an existing scoring formula. Strong test performance does not independently validate personality prediction or establish psychological validity.
 
 ### Input Features
 
@@ -109,22 +121,26 @@ The frontend and backend run as separate services. The frontend sends questionna
 
 ## Project Structure
 
+## Project Structure
+
 ```text
-ML-Production-Project/
+Personality-Prediction-ML/
 ├── app/
 │   ├── main.py
 │   └── streamlit_app.py
+├── DATA/
+│   ├── raw/
+│   └── processed/
 ├── MODELS/
 │   └── personality_baseline.joblib
 ├── notebooks/
 │   ├── 01_dataset_inspection_and_cleaning.ipynb
 │   └── 02_model_training.ipynb
 ├── src/
+│   ├── __init__.py
 │   ├── data.py
-│   ├── preprocessing.py
-│   ├── train.py
-│   ├── evaluate.py
 │   └── predict.py
+├── .gitignore
 ├── Dockerfile.backend
 ├── Dockerfile.frontend
 ├── compose.yaml
@@ -142,8 +158,10 @@ ML-Production-Project/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Mahiman001/ML-and-DL-Projects.git
-cd ML-and-DL-Projects
+
+git clone https://github.com/Mahiman001/Personality-Prediction-ML.git
+cd Personality-Prediction-ML
+
 ```
 
 ### 2. Start the application
@@ -168,14 +186,57 @@ docker compose down
 
 ### `POST /predict`
 
-Accepts questionnaire answers and returns predicted personality trait scores.
+Accepts 50 questionnaire answers and returns predicted OCEAN trait scores with interpretations.
 
-The request contains an `answers` object with all 50 questionnaire fields. Each answer must be between 1 and 5.
+**Endpoint:** `https://personality-api-010l.onrender.com/predict`
 
-- **Endpoint:** `https://personality-api-010l.onrender.com/predict`
-- **Interactive documentation:** [https://personality-api-010l.onrender.com/docs](https://personality-api-010l.onrender.com/docs)
+**Request validation**
 
-Use the interactive API documentation to inspect the request schema and test the endpoint.
+- Requires an `answers` object containing exactly the 50 expected questionnaire fields.
+- Each answer must be a number between 1 and 5.
+- Missing fields, unexpected fields, and invalid values are rejected.
+- Invalid requests return HTTP `422` through FastAPI validation.
+
+**Example request**
+
+```json
+{
+  "answers": {
+    "EXT1": 3,
+    "EXT2": 4,
+    "EXT3": 2
+  }
+}
+```
+
+The example above is abbreviated. A valid request must include all 50 fields.
+
+**Response format**
+
+```json
+{
+  "personality_scores": {
+    "E": 3.2,
+    "A": 3.5,
+    "C": 3.8,
+    "O": 4.0,
+    "N": 2.7
+  },
+  "interpretations": {
+    "E": "Moderate",
+    "A": "Moderate",
+    "C": "Moderate",
+    "O": "High",
+    "N": "Moderate"
+  }
+}
+```
+
+_The numerical scores and interpretations above are illustrative, not actual API output._
+
+**Interactive API documentation:** [Open Swagger UI](https://personality-api-010l.onrender.com/docs)
+
+Use Swagger UI to inspect the full request schema and test the endpoint.
 
 ## Deployment
 
