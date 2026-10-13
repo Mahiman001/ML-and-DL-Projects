@@ -1,0 +1,15 @@
+.git
+.gitignore
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.ipynb_checkpoints/
+.pytest_cache/
+
+DATA/raw/
+DATA/processed/personality_model_data.csv
+notebooks/
+tests/

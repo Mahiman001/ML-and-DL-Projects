@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Large training data
+DATA/raw/
+DATA/processed/personality_model_data.csv
+
+# Local development artifacts
+.ipynb_checkpoints/
+.pytest_cache/
+# Local database and generated results
+DATA/processed/progress.db
+DATA/processed/baseline_results.csv
